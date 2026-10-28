@@ -1,0 +1,10 @@
+[
+    {
+        "merged": "com.floatingtask.app-debug-4:/xml_file_paths.xml.flat",
+        "source": "com.floatingtask.app-main-6:/xml/file_paths.xml"
+    },
+    {
+        "merged": "/root/.gradle/daemon/8.7/com.floatingtask.app-debug-4:/drawable_ic_printer.xml.flat",
+        "source": "/root/.gradle/daemon/8.7/com.floatingtask.app-main-6:/drawable/ic_printer.xml"
+    }
+]

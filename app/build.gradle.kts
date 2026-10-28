@@ -11,8 +11,8 @@ android {
         applicationId = "com.floatingtask"
         minSdk = 26
         targetSdk = 34
-        versionCode = 14
-        versionName = "2.4-probe"
+        versionCode = 20
+        versionName = "3.0"
     }
 
     buildTypes {
@@ -32,6 +32,4 @@ android {
 dependencies {
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.appcompat:appcompat:1.7.0")
-    implementation("org.nanohttpd:nanohttpd:2.3.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
 }
