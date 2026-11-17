@@ -22,6 +22,11 @@ import android.widget.Toast
  */
 class MainActivity : Activity() {
 
+    private fun startBridge() {
+        val i = Intent(this, BridgeService::class.java)
+        if (Build.VERSION.SDK_INT >= 26) startForegroundService(i) else startService(i)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val ctx = this
@@ -68,6 +73,7 @@ class MainActivity : Activity() {
                         Uri.parse("package:$packageName")))
                     return@setOnClickListener
                 }
+                startBridge()
                 val i = Intent(ctx, TaskWindowService::class.java)
                     .putExtra(TaskWindowService.EXTRA_TASK, task)
                     .putExtra(TaskWindowService.EXTRA_MINUTES, minutes)
@@ -76,6 +82,19 @@ class MainActivity : Activity() {
                 moveTaskToBack(true)
             }
         }
+        val bridgeBtn = Button(ctx).apply {
+            text = "🔗 启动 AI 桥接（一次性，保持常驻）"
+            setOnClickListener { startBridge(); Toast.makeText(ctx, "桥接已启动 :8791", Toast.LENGTH_SHORT).show() }
+        }
+        box.addView(bridgeBtn, LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { topMargin = 12 })
+
+        box.addView(TextView(ctx).apply {
+            text = "Orbis MCP 配置：Streamable HTTP → http://127.0.0.1:8791/mcp\n配置好后 AI 可用 create_task 直接给你弹任务窗"
+            textSize = 12f
+            setPadding(0, 24, 0, 0)
+        })
+
         box.addView(start, LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { topMargin = 32 })
 

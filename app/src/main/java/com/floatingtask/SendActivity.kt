@@ -19,8 +19,9 @@ import java.io.File
 import java.io.FileOutputStream
 
 /**
- * 拍照 → 预览 → 编辑文字 → 分享给 AI，一条龙。
- * 用户真的把内容分享出去（选择器回调 OK）才关悬浮窗；取消分享则留在编辑页。
+ * 拍照 → 预览 → 编辑文字 → 提交验收，一条龙。
+ * 点【完成】只提交照片（窗口转"等待 AI 验收"），不关窗；
+ * AI 验收通过才 dismiss 关窗，不合格 reject_task 打回重拍。
  * 照片用系统相机拍（存私有目录），天然防相册选旧图。
  */
 class SendActivity : Activity() {
@@ -59,8 +60,17 @@ class SendActivity : Activity() {
             setBackgroundColor(0xFF1A1A24.toInt())
             setPadding(24, 24, 24, 24)
         }
-        val send = Button(ctx).apply {
-            text = "✅ 发送给 AI"
+        val done = Button(ctx).apply {
+            text = "✅ 完成，交给 AI 验收"
+            setOnClickListener {
+                TaskStore.submit(photoFile!!.absolutePath)
+                TaskWindowService.notifySubmitted(ctx)
+                Toast.makeText(ctx, "已提交，等 AI 看图验收；不合格会被打回重拍", Toast.LENGTH_LONG).show()
+                finish()
+            }
+        }
+        val share = Button(ctx).apply {
+            text = "📤 改用分享发送"
             setOnClickListener {
                 decodeScaled(photoFile!!, 1080).compress(Bitmap.CompressFormat.JPEG, 88, FileOutputStream(shareFile))
                 val uri = FileProvider.getUriForFile(ctx, "$packageName.fileprovider", shareFile)
@@ -80,11 +90,13 @@ class SendActivity : Activity() {
         box.addView(preview, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f))
         box.addView(editText, LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { topMargin = 24 })
+        box.addView(done, LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { topMargin = 24 })
         val row = LinearLayout(ctx).apply { orientation = LinearLayout.HORIZONTAL }
         row.addView(retake, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
-        row.addView(send, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+        row.addView(share, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
         box.addView(row, LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { topMargin = 24 })
+            LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { topMargin = 16 })
         setContentView(box)
     }
 
@@ -100,8 +112,9 @@ class SendActivity : Activity() {
             }
             REQ_SHARE -> {
                 if (resultCode == RESULT_OK || data != null) {
-                    TaskWindowService.dismissWindow(this)
-                    Toast.makeText(this, "已发送，悬浮任务完成 ✓", Toast.LENGTH_LONG).show()
+                    TaskStore.submit(shareFile.absolutePath)
+                    TaskWindowService.notifySubmitted(this)
+                    Toast.makeText(this, "已发送，等 AI 看图验收", Toast.LENGTH_LONG).show()
                     finish()
                 }
                 // 用户取消分享 → 停留编辑页，可重试
